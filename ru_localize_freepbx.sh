@@ -78,7 +78,9 @@ fi
 ### 6) Перезапуск/перечитка
 echo "==> Перечитываю конфигурацию..." | tee -a "$LOG"
 systemctl restart asterisk || true
-command -v fwconsole >/dev/null 2>&1 && fwconsole reload >>"$LOG" 2>&1 || true
+if command -v fwconsole >/dev/null 2>&1; then
+  fwconsole reload >>"$LOG" 2>&1 || true
+fi
 
 echo "==> Готово. Проверь:"
 echo "    asterisk -rx 'core show settings' | grep -i country"

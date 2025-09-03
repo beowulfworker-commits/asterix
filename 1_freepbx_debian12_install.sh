@@ -21,7 +21,7 @@ fi
 
 if ! grep -q 'ID=debian' /etc/os-release || ! grep -q 'VERSION_ID="12' /etc/os-release; then
   echo "Этот инсталлятор рассчитан на Debian 12 (bookworm). Обнаружено:" | tee -a "$WRAP_LOG"
-  cat /etc/os-release | tee -a "$WRAP_LOG"
+  tee -a "$WRAP_LOG" < /etc/os-release
   exit 1
 fi
 
@@ -30,10 +30,12 @@ date | tee -a "$WRAP_LOG"
 
 ### === ОБНОВЛЕНИЕ ОС ===
 export DEBIAN_FRONTEND=noninteractive
-apt-get update -y        >>"$WRAP_LOG" 2>&1
-apt-get full-upgrade -y  >>"$WRAP_LOG" 2>&1
-apt-get install -y curl wget ca-certificates gnupg lsb-release \
-  net-tools iproute2 htop logrotate tzdata >>"$WRAP_LOG" 2>&1
+{
+  apt-get update -y
+  apt-get full-upgrade -y
+  apt-get install -y curl wget ca-certificates gnupg lsb-release \
+    net-tools iproute2 htop logrotate tzdata
+} >>"$WRAP_LOG" 2>&1
 
 ### === ЧАСОВОЙ ПОЯС ===
 if command -v timedatectl >/dev/null 2>&1; then
@@ -56,7 +58,7 @@ if [[ -n "$EXTRA_ARGS" ]]; then
 fi
 
 echo "==> Запускаю официальный установщик FreePBX 17 с аргументами: ${ARGS}" | tee -a "$WRAP_LOG"
-bash /tmp/sng_freepbx_debian_install.sh ${ARGS} | tee -a "$WRAP_LOG"
+bash /tmp/sng_freepbx_debian_install.sh ${ARGS:+$ARGS} | tee -a "$WRAP_LOG"
 
 ### === ПОСТ-НАСТРОЙКИ ===
 # Включим автозапуск ключевых служб (обычно уже активны после скрипта)
